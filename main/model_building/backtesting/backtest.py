@@ -685,20 +685,4 @@ class BackTest:
         return long_position_value + short_position_value + self.capital
 
 
-if __name__ == "__main__":
 
-    results_df = pd.read_parquet(PATHWAY_TO_COINTEGRATION_AND_RESULTS_DF)
-
-    row = results_df[
-        (results_df["first_ticker"] == "FLRN")
-        & (results_df["second_ticker"] == "LONF15")
-    ].squeeze()
-
-    bt = BackTest(
-        row=row,
-    )
-
-    bt.trade()
-    trade = retrieve_backtest_equity_curve_spread_table_from_sql_df(row)
-
-    print("")
