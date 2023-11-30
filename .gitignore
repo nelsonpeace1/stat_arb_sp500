@@ -1,0 +1,10 @@
+*.parquet
+*.csv
+*.html
+*.db
+*.pyc
+pairs_trade_venv
+.env
+main\data_collection\data\processed\old_dfs
+private_folder
+.vscode
