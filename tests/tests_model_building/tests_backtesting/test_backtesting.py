@@ -18,15 +18,15 @@ from main.model_building.backtesting.backtest import (
     BackTest,
 )
 
+TICKER_1_TO_TEST_WITH = "SYKN"
+TICKER_2_TO_TEST_WITH = "AFLN"
 
 def test_backtesting_one():
 
-    ticker_1_to_test_with = "XRXOQ"
-    ticker_2_to_test_with = "PBIN"
     testing_results_df = pd.read_parquet(PATHWAY_TO_COINTEGRATION_AND_RESULTS_DF)
     row = testing_results_df[
-        (testing_results_df["first_ticker"] == ticker_1_to_test_with)
-        & (testing_results_df["second_ticker"] == ticker_2_to_test_with)
+        (testing_results_df["first_ticker"] == TICKER_1_TO_TEST_WITH)
+        & (testing_results_df["second_ticker"] == TICKER_2_TO_TEST_WITH)
     ].squeeze()
 
     test_inputs = generate_series_for_backtest_testing(
@@ -36,7 +36,7 @@ def test_backtesting_one():
         ("2022-01-31", 7),
     )
 
-    backtest_obj_one = BackTest(row, test_inputs=test_inputs)
+    backtest_obj_one = BackTest(row, test_inputs=test_inputs,)
     backtest_obj_one.trade()
     assert backtest_obj_one.trade_history_frame.shape == (3, 13)
     assert backtest_obj_one.trade_history_frame.iloc[-1, -1] == True
@@ -44,12 +44,10 @@ def test_backtesting_one():
 
 def test_backtesting_two():
 
-    ticker_1_to_test_with = "XRXOQ"
-    ticker_2_to_test_with = "PBIN"
     testing_results_df = pd.read_parquet(PATHWAY_TO_COINTEGRATION_AND_RESULTS_DF)
     row = testing_results_df[
-        (testing_results_df["first_ticker"] == ticker_1_to_test_with)
-        & (testing_results_df["second_ticker"] == ticker_2_to_test_with)
+        (testing_results_df["first_ticker"] == TICKER_1_TO_TEST_WITH)
+        & (testing_results_df["second_ticker"] == TICKER_2_TO_TEST_WITH)
     ].squeeze()
 
     test_inputs = generate_series_for_backtest_testing(
@@ -70,12 +68,10 @@ def test_backtesting_two():
 
 def test_backtesting_three():
 
-    ticker_1_to_test_with = "XRXOQ"
-    ticker_2_to_test_with = "PBIN"
     testing_results_df = pd.read_parquet(PATHWAY_TO_COINTEGRATION_AND_RESULTS_DF)
     row = testing_results_df[
-        (testing_results_df["first_ticker"] == ticker_1_to_test_with)
-        & (testing_results_df["second_ticker"] == ticker_2_to_test_with)
+        (testing_results_df["first_ticker"] == TICKER_1_TO_TEST_WITH)
+        & (testing_results_df["second_ticker"] == TICKER_2_TO_TEST_WITH)
     ].squeeze()
 
     test_inputs = generate_series_for_backtest_testing(

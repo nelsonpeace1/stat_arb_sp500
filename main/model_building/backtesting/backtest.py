@@ -6,23 +6,21 @@ load_dotenv()
 project_path = os.getenv("PROJECT_PATH")
 sys.path.append(project_path)
 
-import pandas as pd
 from datetime import datetime, timedelta
 from math import floor
 import logging
 import sqlite3
-import numpy as np
 
+import pandas as pd
+import numpy as np
 logging.basicConfig(level=logging.INFO)
 
 from main.utilities.functions import (
     retrieve_spread_table_from_sql_df,
     custom_create_db_engine,
-    retrieve_backtest_equity_curve_spread_table_from_sql_df,
 )
 
 from main.utilities.paths import (
-    PATHWAY_TO_COINTEGRATION_AND_RESULTS_DF,
     PATHWAY_TO_PRICE_DF,
     PATHWAY_TO_SQL_DB_SPREADS_BACKTEST,
     PATHWAY_TO_SQL_DB_OF_BACKTEST_RESULT_DFS,
@@ -35,8 +33,6 @@ from main.utilities.constants import (
 
 DB_NAME_BACKTEST_TRADEFRAMES = f"sqlite:///{PATHWAY_TO_SQL_DB_OF_BACKTEST_RESULT_DFS}"
 DATABASE_NAME_SPREAD_BACKTEST = f"sqlite:///{PATHWAY_TO_SQL_DB_SPREADS_BACKTEST}"
-
-CAPITAL_STARTING = 100_000
 STARTING_TRADE_COUNTER = 0
 DAYS_IN_CALENDAR_YEAR = 365
 DEFAULT_SHORTING_RATE_PER_ANNUM = 0.0025
@@ -67,7 +63,6 @@ SPREAD_TO_TRIGGER_TRADE_ENTRY = 2
 SPREAD_TO_TRIGGER_TRADE_EXIT = 0.5
 SPREAD_TO_ABANDON_TRADE = 6
 SPREAD_HOP_TO_ABANDON_TRADE = 4
-
 
 class BackTest:
     def __init__(
@@ -143,7 +138,7 @@ class BackTest:
 
         logging.info(f"class instantiated for {self.ticker1} & {self.ticker2}")
 
-    def trade(self, test_inputs: dict | None = None) -> None:
+    def trade(self, test_inputs: dict | None = None,) -> None:
 
         if (self.standardised_spread.iloc[0] > self.spread_to_abandon_trade) or (
             self.standardised_spread.iloc[0] < -self.spread_to_abandon_trade
@@ -316,13 +311,27 @@ class BackTest:
             self._save_regular_spread_df_to_sql(kalman_spread=self.kalman_spread)
 
         logging.info(f"Completed backtest for {self.ticker1} & {self.ticker2}")
+        
+                
+    def _trade_entry_common_logic(
+        self,
+        date: datetime,
+        spread_positive: bool,
+    ) -> None:
+        
+        self.trade_status_open = True
+        self.ticker1_minus_ticker2_trade_opening_spread_positive = spread_positive
+        self.trade_opening_date = date
+        self.ticker2_trade_opening_price = self.ticker2_prices[date]
+        self.ticker1_trade_opening_price = self.ticker1_prices[date]
 
     # entries
-    def _entry_when_spread_was_negative(self, date: datetime) -> None:
+    def _entry_when_spread_was_negative(self, date: datetime,) -> None:
         (
             number_assets_of_higher_priced_asset,
             number_assets_of_lower_priced_asset,
         ) = self._calculate_optimum_allocation_to_each_asset(date)
+        
         if self.ticker1 == self.higher_priced_asset_ticker:
             self.ticker1_holding = number_assets_of_higher_priced_asset
             self.ticker2_holding = number_assets_of_lower_priced_asset
@@ -330,11 +339,11 @@ class BackTest:
             self.ticker2_holding = number_assets_of_higher_priced_asset
             self.ticker1_holding = number_assets_of_lower_priced_asset
 
-        self.trade_status_open = True
-        self.ticker1_minus_ticker2_trade_opening_spread_positive = False
-        self.trade_opening_date = date
-        self.ticker2_trade_opening_price = self.ticker2_prices[date]
-        self.ticker1_trade_opening_price = self.ticker1_prices[date]
+        self._trade_entry_common_logic(
+            date=date,
+            spread_positive=False,
+        )
+        
         self.short_position_holding_name = self.ticker2
         self.capital -= (
             self.ticker1_holding * self.ticker1_prices[date]
@@ -351,8 +360,9 @@ class BackTest:
             self.ticker2_prices[date],
             exit_and_short=True,
         )
+             
 
-    def _entry_when_spread_was_positive(self, date: datetime) -> None:
+    def _entry_when_spread_was_positive(self, date: datetime,) -> None:
         (
             number_assets_of_higher_priced_asset,
             number_assets_of_lower_priced_asset,
@@ -365,11 +375,11 @@ class BackTest:
             self.ticker2_holding = number_assets_of_higher_priced_asset
             self.ticker1_holding = number_assets_of_lower_priced_asset
 
-        self.trade_status_open = True
-        self.ticker1_minus_ticker2_trade_opening_spread_positive = True
-        self.trade_opening_date = date
-        self.ticker2_trade_opening_price = self.ticker2_prices[date]
-        self.ticker1_trade_opening_price = self.ticker1_prices[date]
+        self._trade_entry_common_logic(
+            date=date,
+            spread_positive=True,
+        )
+        
         self.short_position_holding_name = self.ticker1
         self.capital -= (
             self.ticker2_holding * self.ticker2_prices[date]
