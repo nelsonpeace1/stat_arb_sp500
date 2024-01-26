@@ -35,8 +35,8 @@ def execute_trade(
             kalman_spread=kalman_spread,
         )
         return bt.trade()
-    except:
-        logging.info(f"{row['first_ticker']} and {row['second_ticker']} FAILED SOMEHOW")
+    except ValueError as e:
+        logging.info(f"{row['first_ticker']} and {row['second_ticker']} FAILED SOMEHOW: {e}")
 
 
 if __name__ == "__main__":

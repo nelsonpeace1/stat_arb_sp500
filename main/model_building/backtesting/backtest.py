@@ -1,5 +1,3 @@
-
-
 from datetime import datetime, timedelta
 from math import floor
 import logging
