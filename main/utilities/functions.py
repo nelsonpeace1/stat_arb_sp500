@@ -1,10 +1,4 @@
-import sys
-from dotenv import load_dotenv
-import os
 
-load_dotenv()
-project_path = os.getenv("PROJECT_PATH")
-sys.path.append(project_path)
 
 from main.utilities.paths import (
     PATHWAY_TO_SQL_DB_SPREADS,

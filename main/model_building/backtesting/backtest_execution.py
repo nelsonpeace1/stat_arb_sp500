@@ -1,5 +1,3 @@
-
-
 from joblib import Parallel, delayed
 import pandas as pd
 import logging
@@ -17,7 +15,6 @@ from main.utilities.paths import (
 from main.model_building.backtesting.backtest import (
     BackTest,
 )
-https://github.com/nelsonpeace1/stat_arb_sp500.git
 
 def execute_trade(
     row,
