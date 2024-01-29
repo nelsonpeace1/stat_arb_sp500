@@ -16,6 +16,7 @@ from main.model_building.backtesting.backtest import (
     BackTest,
 )
 
+
 def execute_trade(
     row,
     spread_to_trigger_trade_entry: int | float,
@@ -36,7 +37,9 @@ def execute_trade(
         )
         return bt.trade()
     except ValueError as e:
-        logging.info(f"{row['first_ticker']} and {row['second_ticker']} FAILED SOMEHOW: {e}")
+        logging.info(
+            f"{row['first_ticker']} and {row['second_ticker']} FAILED SOMEHOW: {e}"
+        )
 
 
 if __name__ == "__main__":

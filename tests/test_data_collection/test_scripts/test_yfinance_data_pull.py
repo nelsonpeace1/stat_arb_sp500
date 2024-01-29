@@ -1,5 +1,3 @@
-
-
 from main.data_collection.scripts.yfinance_data_pull import (
     retrieve_tickers_url,
 )

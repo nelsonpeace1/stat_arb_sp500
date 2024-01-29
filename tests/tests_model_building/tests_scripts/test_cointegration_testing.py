@@ -1,5 +1,3 @@
-
-
 import pandas as pd
 
 from main.model_building.scripts.cointegration_testing import (

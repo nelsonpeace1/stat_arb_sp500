@@ -1,5 +1,3 @@
-
-
 import pandas as pd
 
 from main.model_building.scripts.adf_testing import perform_adf_whole_set

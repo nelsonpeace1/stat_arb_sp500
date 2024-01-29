@@ -1,11 +1,15 @@
-from datetime import datetime, timedelta
+from datetime import datetime
 from math import floor
 import logging
 import sqlite3
+from typing import Optional
 
 import pandas as pd
 import numpy as np
-logging.basicConfig(level=logging.INFO)
+
+logging.basicConfig(
+    level=logging.INFO
+)  # TODO put loggin at end [put it at ifname=main, not herre]
 
 from main.utilities.functions import (
     retrieve_spread_table_from_sql_df,
@@ -25,70 +29,69 @@ from main.utilities.constants import (
 
 DB_NAME_BACKTEST_TRADEFRAMES = f"sqlite:///{PATHWAY_TO_SQL_DB_OF_BACKTEST_RESULT_DFS}"
 DATABASE_NAME_SPREAD_BACKTEST = f"sqlite:///{PATHWAY_TO_SQL_DB_SPREADS_BACKTEST}"
-STARTING_TRADE_COUNTER = 0
+STARTING_TRADE_COUNTER = 0  # TODO does a zero add meaning?
 DAYS_IN_CALENDAR_YEAR = 365
-DEFAULT_SHORTING_RATE_PER_ANNUM = 0.0025
+DEFAULT_SHORTING_RATE_PER_ANNUM = 0.0025  # TODO class attribute?
 FIRST_INDEX_TRADE_DF = 0
-IBKR_COMMISSION_RATE = 0.0005
+IBKR_COMMISSION_RATE = 0.0005  # TODO scientific notation?
 AVGE_SP500_BID_ASK_SPREAD_PERCENT = 0.03
 SPREAD_SERIES_VALUATION_AND_INFO_COLS = [
     "valuation",
     "trade_open_bool",
     "trade_abandoned_bool",
 ]
-TRADE_DF_RECORD_COLUMNS_LIST = [
-    "trade_counter",
-    "opening_date",
-    "closing_date",
-    "position_ticker1",
-    "opening_price_ticker1",
-    "closing_price_ticker1",
-    "position_ticker2",
-    "opening_price_ticker2",
-    "closing_price_ticker2",
-    "days_trade_open",
-    "short_ticker",
-    "closing_capital",
-    "trade_abandoned",
-]
+EXAMPLE_CONSTANT: list[int | str] = [
+    1,
+    2,
+    3,
+]  # TODO use typehints for constants (use also in consttants folder)
+TRADE_DF_RECORD_COLUMNS_LIST = (
+    [  # TODO thse should also be in the class / not used elsewhere
+        "trade_counter",  # TODO  do not name the constant as a list ( ?)
+        "opening_date",
+        "closing_date",
+        "position_ticker1",
+        "opening_price_ticker1",
+        "closing_price_ticker1",
+        "position_ticker2",
+        "opening_price_ticker2",
+        "closing_price_ticker2",
+        "days_trade_open",
+        "short_ticker",
+        "closing_capital",
+        "trade_abandoned",
+    ]
+)
 SPREAD_TO_TRIGGER_TRADE_ENTRY = 2
 SPREAD_TO_TRIGGER_TRADE_EXIT = 0.5
 SPREAD_TO_ABANDON_TRADE = 6
 SPREAD_HOP_TO_ABANDON_TRADE = 4
 
-class BackTest:
+
+class BackTest:  # TODO add docstrings
     def __init__(
         self,
-        row: pd.Series,
+        row: pd.Series,  # TODO what row?
         spread_to_trigger_trade_entry: int = SPREAD_TO_TRIGGER_TRADE_ENTRY,
         spread_to_trigger_trade_exit: int = SPREAD_TO_TRIGGER_TRADE_EXIT,
         spread_to_abandon_trade: int = SPREAD_TO_ABANDON_TRADE,
-        test_inputs: dict = None,
+        test_inputs: dict[str, int] | None = None,  # TODO use optoinal here,
         kalman_spread: bool = False,
     ) -> None:
 
         self.ticker1 = row["first_ticker"]
         self.ticker2 = row["second_ticker"]
         self.ticker1_prices = pd.read_parquet(
-            PATHWAY_TO_PRICE_DF, columns=[self.ticker1]
+            PATHWAY_TO_PRICE_DF, columns=[self.ticker1]  # TODO use word not digit
         ).squeeze()
         self.ticker2_prices = pd.read_parquet(
             PATHWAY_TO_PRICE_DF, columns=[self.ticker2]
         ).squeeze()
-        if kalman_spread:
-            self.kalman_spread = True
-            self.regular_spread = retrieve_spread_table_from_sql_df(
-                row,
-                spread_type="_regular_spread_kalman",
-                pathway=PATHWAY_TO_SQL_DB_SPREADS_BACKTEST,
-            )
-        else:
-            self.kalman_spread = False
-            self.regular_spread = retrieve_spread_table_from_sql_df(
-                row,
-                spread_type="_regular_spread",
-                pathway=PATHWAY_TO_SQL_DB_SPREADS_BACKTEST,
-            )
+        self.kalman_spread = kalman_spread
+        self.regular_spread = self._assign_kalman_spread_status(
+            self,  # TODO group these methdos in some logical way
+            row,
+        )
         self.standardised_spread = retrieve_spread_table_from_sql_df(
             row,
             spread_type="_standardised_spread",
@@ -130,10 +133,14 @@ class BackTest:
 
         logging.info(f"class instantiated for {self.ticker1} & {self.ticker2}")
 
-    def trade(self, test_inputs: dict | None = None,) -> None:
+    def trade(
+        self,
+        test_inputs: dict | None = None,
+    ) -> None:
 
         if (self.standardised_spread.iloc[0] > self.spread_to_abandon_trade) or (
-            self.standardised_spread.iloc[0] < -self.spread_to_abandon_trade
+            self.standardised_spread.iloc[0]
+            < -self.spread_to_abandon_trade  # TODO not so readable, say it in words and have as attribute,
         ):
             self.trade_abandoned = True
             self.trade_history_frame.loc[
@@ -303,14 +310,13 @@ class BackTest:
             self._save_regular_spread_df_to_sql(kalman_spread=self.kalman_spread)
 
         logging.info(f"Completed backtest for {self.ticker1} & {self.ticker2}")
-        
-                
+
     def _trade_entry_common_logic(
         self,
         date: datetime,
         spread_positive: bool,
     ) -> None:
-        
+
         self.trade_status_open = True
         self.ticker1_minus_ticker2_trade_opening_spread_positive = spread_positive
         self.trade_opening_date = date
@@ -318,12 +324,15 @@ class BackTest:
         self.ticker1_trade_opening_price = self.ticker1_prices[date]
 
     # entries
-    def _entry_when_spread_was_negative(self, date: datetime,) -> None:
+    def _entry_when_spread_was_negative(
+        self,
+        date: datetime,
+    ) -> None:
         (
             number_assets_of_higher_priced_asset,
             number_assets_of_lower_priced_asset,
         ) = self._calculate_optimum_allocation_to_each_asset(date)
-        
+
         if self.ticker1 == self.higher_priced_asset_ticker:
             self.ticker1_holding = number_assets_of_higher_priced_asset
             self.ticker2_holding = number_assets_of_lower_priced_asset
@@ -335,7 +344,7 @@ class BackTest:
             date=date,
             spread_positive=False,
         )
-        
+
         self.short_position_holding_name = self.ticker2
         self.capital -= (
             self.ticker1_holding * self.ticker1_prices[date]
@@ -352,9 +361,11 @@ class BackTest:
             self.ticker2_prices[date],
             exit_and_short=True,
         )
-             
 
-    def _entry_when_spread_was_positive(self, date: datetime,) -> None:
+    def _entry_when_spread_was_positive(
+        self,
+        date: datetime,
+    ) -> None:
         (
             number_assets_of_higher_priced_asset,
             number_assets_of_lower_priced_asset,
@@ -371,7 +382,7 @@ class BackTest:
             date=date,
             spread_positive=True,
         )
-        
+
         self.short_position_holding_name = self.ticker1
         self.capital -= (
             self.ticker2_holding * self.ticker2_prices[date]
@@ -445,7 +456,8 @@ class BackTest:
             number_assets_of_higher_priced_asset,
             current_price_of_higher_priced_asset,
         ) = self._determine_capital_and_units_higher_priced_asset(
-            date, higher_priced_asset_price_series
+            date,
+            higher_priced_asset_price_series,
         )
 
         (
@@ -686,5 +698,21 @@ class BackTest:
 
         return long_position_value + short_position_value + self.capital
 
+    def _assign_kalman_spread_status(
+        self,
+        row,
+    ) -> None:
 
-
+        if self.kalman_spread:
+            regular_spread = retrieve_spread_table_from_sql_df(
+                row,
+                spread_type="_regular_spread_kalman",
+                pathway=PATHWAY_TO_SQL_DB_SPREADS_BACKTEST,
+            )
+        else:
+            regular_spread = retrieve_spread_table_from_sql_df(
+                row,
+                spread_type="_regular_spread",
+                pathway=PATHWAY_TO_SQL_DB_SPREADS_BACKTEST,
+            )
+        return regular_spread

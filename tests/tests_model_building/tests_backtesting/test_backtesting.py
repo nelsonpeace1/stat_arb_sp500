@@ -1,5 +1,3 @@
-
-
 import pandas as pd
 
 from main.utilities.functions import (
@@ -14,6 +12,7 @@ from main.model_building.backtesting.backtest import (
 
 TICKER_1_TO_TEST_WITH = "SYKN"
 TICKER_2_TO_TEST_WITH = "AFLN"
+
 
 def test_backtesting_one():
 
@@ -30,7 +29,10 @@ def test_backtesting_one():
         ("2022-01-31", 7),
     )
 
-    backtest_obj_one = BackTest(row, test_inputs=test_inputs,)
+    backtest_obj_one = BackTest(
+        row,
+        test_inputs=test_inputs,
+    )
     backtest_obj_one.trade()
     assert backtest_obj_one.trade_history_frame.shape == (3, 13)
     assert backtest_obj_one.trade_history_frame.iloc[-1, -1] == True

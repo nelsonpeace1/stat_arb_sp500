@@ -1,5 +1,3 @@
-
-
 from main.utilities.constants import (
     FIRST_BACKTEST_PARAMETERS,
 )

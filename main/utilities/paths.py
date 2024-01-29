@@ -4,8 +4,7 @@ import os
 ROOT_DIR = r""
 
 PATHWAY_TO_PRICE_DF = os.path.join(
-    ROOT_DIR,
-    r"main\data_collection\data\processed\price_df_4.parquet"
+    ROOT_DIR, r"main\data_collection\data\processed\price_df_4.parquet"
 )
 PATHWAY_TO_COINTEGRATION_AND_RESULTS_DF = os.path.join(
     ROOT_DIR, r"main\data_collection\data\processed\results_df.parquet"

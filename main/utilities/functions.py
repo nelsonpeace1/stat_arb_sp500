@@ -1,5 +1,3 @@
-
-
 from main.utilities.paths import (
     PATHWAY_TO_SQL_DB_SPREADS,
     PATHWAY_TO_SQL_DB_SPREADS_BACKTEST,

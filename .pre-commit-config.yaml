@@ -41,7 +41,7 @@ repos:
   hooks:
   - id: pyupgrade
     args:
-    - --py38-plus
+    - --py311-plus
 
   # TODO: uncomment when refactoring is done
   # - repo: https://github.com/pre-commit/mirrors-mypy
