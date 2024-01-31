@@ -82,4 +82,4 @@ if __name__ == "__main__":
         for _, row in results_df.iterrows()
     )
 
-    logging.info("Backtest complete")
+    logging.info("Backtest execution complete")

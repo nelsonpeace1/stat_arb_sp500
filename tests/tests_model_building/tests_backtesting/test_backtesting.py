@@ -4,7 +4,9 @@ from main.utilities.functions import (
     generate_series_for_backtest_testing,
 )
 
-from main.utilities.paths import PATHWAY_TO_COINTEGRATION_AND_RESULTS_DF
+from main.utilities.paths import (
+    PATHWAY_TO_COINTEGRATION_AND_RESULTS_DF
+)
 
 from main.model_building.backtesting.backtest import (
     BackTest,

@@ -3,7 +3,6 @@ from joblib import Parallel, delayed
 import numpy as np
 from datetime import datetime
 
-
 from main.utilities.constants import (
     CORES_TO_USE,
 )
@@ -11,7 +10,6 @@ from main.utilities.constants import (
 from main.utilities.functions import (
     retrieve_backtest_equity_curve_spread_table_from_sql_df,
 )
-
 
 def _equity_table_adder(
     row: pd.Series,

@@ -13,7 +13,6 @@ logging.basicConfig(
 
 from main.utilities.functions import (
     retrieve_spread_table_from_sql_df,
-    custom_create_db_engine,
 )
 
 from main.model_building.backtesting.database_utils import (
@@ -134,14 +133,13 @@ class BackTest:
         self.ticker1 = asset_pair_row["first_ticker"]
         self.ticker2 = asset_pair_row["second_ticker"]
         self.ticker1_prices = pd.read_parquet(
-            PATHWAY_TO_PRICE_DF, columns=[self.ticker1]  
+            PATHWAY_TO_PRICE_DF, columns=[self.ticker1], 
         ).squeeze()
         self.ticker2_prices = pd.read_parquet(
-            PATHWAY_TO_PRICE_DF, columns=[self.ticker2]
+            PATHWAY_TO_PRICE_DF, columns=[self.ticker2],
         ).squeeze()
         self.kalman_spread = kalman_spread
         self.regular_spread = self._assign_kalman_spread_status(
-            self,
             asset_pair_row,
         )
         self.standardised_spread = retrieve_spread_table_from_sql_df(
