@@ -182,6 +182,7 @@ class BackTest:
             raise ValueError(f"The price series for {self.ticker2} is empty.")
 
         logging.info(f"class instantiated for {self.ticker1} & {self.ticker2}")
+        
 
     def trade(
         self,
@@ -203,6 +204,67 @@ class BackTest:
             Finally, it saves the trade history dataframe to the SQLite database.
             
         """
+        
+        self._set_trade_df_if_trade_opens_abandoned()
+
+        self.regular_spread[self.SPREAD_SERIES_VALUATION_AND_INFO_COLS] = np.nan
+
+        for date, standardised_spread in self.standardised_spread.items():
+            if self._check_and_set_abandoned_or_zero_spread(
+                date=date,
+                standardised_spread=standardised_spread,
+            ):
+                continue
+            
+            
+            # this mark to mark values the strategy, if its open or not    
+            self._record_trade_valuation_on_date(
+                date=date,
+            )
+            
+            
+            # these next two if/elif are for when the trade is to be abandoned
+            if self._check_set_trade_abandoned_this_date(
+                date=date,
+                standardised_spread=standardised_spread,
+            ):
+                continue
+            
+            
+            # here we put a condition to exit the trade if it is the last day of the standardised spread, as this would be delisting or similar
+            if self._check_if_delisted_then_exit_trade(
+                date=date,
+                standardised_spread=standardised_spread,
+            ):
+                continue
+
+
+            # these two elifs are for if the trade 'hops the spread' in one direction
+            if self._check_if_trade_hopped_spread_then_exit(
+                date=date,
+                standardised_spread=standardised_spread,
+            ):
+                continue
+            
+            
+            # these next two elifs are for the 4 regular conditions for trade entry and exit
+            if self._check_four_regular_conditions_for_trade_entry_and_exit(
+                date=date,
+                standardised_spread=standardised_spread,
+            ):
+                continue
+
+
+        # results df and sql table creation
+        if test_inputs is None:
+            self._save_trade_trade_history_information_to_databases()
+            
+        logging.info(f"Completed backtest for {self.ticker1} & {self.ticker2}")
+        
+        
+    def _set_trade_df_if_trade_opens_abandoned(
+        self, 
+    ) -> None:
 
         if (self.standardised_spread.iloc[0] > self.spread_to_abandon_trade) or (
             self.standardised_spread.iloc[0]
@@ -216,124 +278,179 @@ class BackTest:
             self.trade_history_frame.loc[
                 self.FIRST_INDEX_TRADE_DF, "closing_capital"
             ] = TRADE_STARTED_ABANDONED_STRING
+                
+                
+    def _check_and_set_abandoned_or_zero_spread(
+        self, 
+        date: datetime, 
+        standardised_spread: float,
+        ) -> bool:
+        if (self.trade_abandoned == True) or (standardised_spread == 0):
+            self.regular_spread.loc[date, self.SPREAD_SERIES_VALUATION_AND_INFO_COLS] = (
+                self.capital,
+                float(self.trade_status_open),
+                float(self.trade_abandoned),
+            )
+            return True
+        
+        else:
+            return False
 
-        self.regular_spread[self.SPREAD_SERIES_VALUATION_AND_INFO_COLS] = np.nan
 
-        for date, standardised_spread in self.standardised_spread.items():
-            if (self.trade_abandoned == True) or (standardised_spread == 0):
-                self.regular_spread.loc[date, self.SPREAD_SERIES_VALUATION_AND_INFO_COLS] = (
-                    self.capital,
-                    float(self.trade_status_open),
-                    float(self.trade_abandoned),
-                )
-                continue
+    def _record_trade_valuation_on_date(
+    self,
+    date: datetime,
+    ) -> None:
 
-            if self.trade_status_open:
+        if self.trade_status_open:
 
-                self.regular_spread.loc[date, self.SPREAD_SERIES_VALUATION_AND_INFO_COLS] = (
-                    self._perform_valuation_trade_open(date),
-                    float(self.trade_status_open),
-                    float(self.trade_abandoned),
-                )
+            self.regular_spread.loc[date, self.SPREAD_SERIES_VALUATION_AND_INFO_COLS] = (
+                self._perform_valuation_trade_open(date),
+                float(self.trade_status_open),
+                float(self.trade_abandoned),
+            )
 
-            else:
+        else:
 
-                self.regular_spread.loc[date, self.SPREAD_SERIES_VALUATION_AND_INFO_COLS] = (
-                    self.capital,
-                    float(self.trade_status_open),
-                    float(self.trade_abandoned),
-                )
+            self.regular_spread.loc[date, self.SPREAD_SERIES_VALUATION_AND_INFO_COLS] = (
+                self.capital,
+                float(self.trade_status_open),
+                float(self.trade_abandoned),
+            )
 
-            # these next two if/elif are for when the trade is to be abandoned
-            if (
-                (self.ticker1_minus_ticker2_trade_opening_spread_positive == True)
-                and (standardised_spread >= self.spread_to_abandon_trade)
-                and (self.trade_status_open)
-            ):
 
+    def _check_set_trade_abandoned_this_date(
+        self,
+        date: datetime, 
+        standardised_spread: float,
+        ) -> bool:
+        
+        if (
+            (self.ticker1_minus_ticker2_trade_opening_spread_positive == True)
+            and (standardised_spread >= self.spread_to_abandon_trade)
+            and (self.trade_status_open)
+        ):
+
+            self._exit_when_spread_was_positive(date)
+            self.trade_abandoned = True
+            self._record_trade(closing_date=date)
+            self._close_trade_attributes()
+            
+            return True
+
+        elif (
+            (self.ticker1_minus_ticker2_trade_opening_spread_positive == False)
+            and (standardised_spread <= -self.spread_to_abandon_trade)
+            and (self.trade_status_open)
+        ):
+
+            self._exit_when_spread_was_negative(date)
+            self.trade_abandoned = True
+            self._record_trade(closing_date=date)
+            self._close_trade_attributes()
+            
+            return True
+        
+        else:
+            return False
+
+    def _check_if_delisted_then_exit_trade(
+        self,
+        date: datetime,
+        standardised_spread: float,
+    ) -> bool:
+        if (
+            date == self.standardised_spread.index.max()
+        ) and self.trade_status_open == True:
+            if standardised_spread > 0:
                 self._exit_when_spread_was_positive(date)
-                self.trade_abandoned = True
+                self.regular_spread.loc[date, "trade_abandoned"] = "last_listing"
                 self._record_trade(closing_date=date)
                 self._close_trade_attributes()
-
-            elif (
-                (self.ticker1_minus_ticker2_trade_opening_spread_positive == False)
-                and (standardised_spread <= -self.spread_to_abandon_trade)
-                and (self.trade_status_open)
-            ):
-
+            elif standardised_spread < 0:
                 self._exit_when_spread_was_negative(date)
+                self.regular_spread.loc[date, "trade_abandoned"] = "last_listing"
+                self._record_trade(closing_date=date)
+                self._close_trade_attributes()
+
+            logging.info(
+                f"{self.ticker1}_{self.ticker2} backtest incurred a last listing event on date {date}"
+            )
+            
+            return True
+        
+        else:
+            return False
+            
+            
+    def _check_if_trade_hopped_spread_then_exit(
+        self,
+        date: datetime,
+        standardised_spread: float,
+    ) -> bool:
+        
+        if (
+            (self.ticker1_minus_ticker2_trade_opening_spread_positive == True)
+            and (standardised_spread < 0)
+            and (self.trade_status_open)
+            and (not self.trade_abandoned)
+        ):
+            logging.info(
+                f"trade ({self.ticker1}_{self.ticker2}) has 'hopped the spread' from pos to neg on date {date}"
+            )
+
+            if abs(standardised_spread) > self.spread_to_abandon_trade or (
+                abs(standardised_spread)
+                + abs(self.standardised_spread.shift().loc[date])
+                > SPREAD_HOP_TO_ABANDON_TRADE
+            ):
+
                 self.trade_abandoned = True
-                self._record_trade(closing_date=date)
-                self._close_trade_attributes()
+            self._exit_when_spread_was_positive(date)
+            self._record_trade(closing_date=date)
+            self._close_trade_attributes()
+            
+            return True
 
-            # here we put a condition to exit the trade if it is the last day of the standardised spread, as this would be delisting or similar
-            if (
-                date == self.standardised_spread.index.max()
-            ) and self.trade_status_open == True:
-                if standardised_spread > 0:
-                    self._exit_when_spread_was_positive(date)
-                    self.regular_spread.loc[date, "trade_abandoned"] = "last_listing"
-                    self._record_trade(closing_date=date)
-                    self._close_trade_attributes()
-                elif standardised_spread < 0:
-                    self._exit_when_spread_was_negative(date)
-                    self.regular_spread.loc[date, "trade_abandoned"] = "last_listing"
-                    self._record_trade(closing_date=date)
-                    self._close_trade_attributes()
-
-                logging.info(
-                    f"{self.ticker1}_{self.ticker2} backtest incurred a last listing event on date {date}"
-                )
-
-            # these two elifs are for if the trade 'hops the spread' in one direction
-            elif (
-                (self.ticker1_minus_ticker2_trade_opening_spread_positive == True)
-                and (standardised_spread < 0)
-                and (self.trade_status_open)
-                and (not self.trade_abandoned)
+        elif (
+            (self.ticker1_minus_ticker2_trade_opening_spread_positive == False)
+            and (standardised_spread > 0)
+            and (self.trade_status_open)
+            and (not self.trade_abandoned)
+        ):
+            logging.info(
+                f"trade ({self.ticker1}_{self.ticker2}) has 'hopped the spread' from neg to pos on date {date}"
+            )
+            if abs(standardised_spread) > self.spread_to_abandon_trade or (
+                (standardised_spread - self.standardised_spread.shift().loc[date])
+                > SPREAD_HOP_TO_ABANDON_TRADE
             ):
-                logging.info(
-                    f"trade ({self.ticker1}_{self.ticker2}) has 'hopped the spread' from pos to neg on date {date}"
-                )
 
-                if abs(standardised_spread) > self.spread_to_abandon_trade or (
-                    abs(standardised_spread)
-                    + abs(self.standardised_spread.shift().loc[date])
-                    > SPREAD_HOP_TO_ABANDON_TRADE
-                ):
-
-                    self.trade_abandoned = True
-                self._exit_when_spread_was_positive(date)
-                self._record_trade(closing_date=date)
-                self._close_trade_attributes()
-
-            elif (
-                (self.ticker1_minus_ticker2_trade_opening_spread_positive == False)
-                and (standardised_spread > 0)
-                and (self.trade_status_open)
-                and (not self.trade_abandoned)
-            ):
-                logging.info(
-                    f"trade ({self.ticker1}_{self.ticker2}) has 'hopped the spread' from neg to pos on date {date}"
-                )
-                if abs(standardised_spread) > self.spread_to_abandon_trade or (
-                    (standardised_spread - self.standardised_spread.shift().loc[date])
-                    > SPREAD_HOP_TO_ABANDON_TRADE
-                ):
-
-                    self.trade_abandoned = True
-                self._exit_when_spread_was_negative(date)
-                self._record_trade(closing_date=date)
-                self._close_trade_attributes()
-
+                self.trade_abandoned = True
+            self._exit_when_spread_was_negative(date)
+            self._record_trade(closing_date=date)
+            self._close_trade_attributes()
+            
+            return True
+        
+        else:
+            return False
+            
+            
+    def _check_four_regular_conditions_for_trade_entry_and_exit(
+            self,
+            date: datetime,
+            standardised_spread: float,
+        ) -> bool:
             # here spread is positive so we buy 2 and sell 1
-            elif (
+            if (
                 (standardised_spread >= (self.spread_to_trigger_trade_entry))
                 and (not self.trade_status_open)
                 and (not self.trade_abandoned)
             ):
                 self._entry_when_spread_was_positive(date)
+                
+                return True
 
             # here spread is negative so we buy 1 and sell 2
             elif (
@@ -342,6 +459,8 @@ class BackTest:
                 and (not self.trade_abandoned)
             ):
                 self._entry_when_spread_was_negative(date)
+                
+                return True
 
             # here write code to exit when sold 1 and bought 2 (because the spread is/was positive)
             elif (
@@ -354,6 +473,8 @@ class BackTest:
                 self._exit_when_spread_was_positive(date)
                 self._record_trade(closing_date=date)
                 self._close_trade_attributes()
+                
+                return True
 
             # here write code to exit when bought 1 and sold 2 (because the spread is/was negative)
             elif (
@@ -366,36 +487,39 @@ class BackTest:
                 self._exit_when_spread_was_negative(date)
                 self._record_trade(closing_date=date)
                 self._close_trade_attributes()
+                
+                return True
 
             else:
-                continue
+                return False  
+            
+                 
+    def _save_trade_trade_history_information_to_databases(
+        self,
+    ) -> None:
+        
+        trade_history_saver = TradeHistorySaver(
+            self.ticker1,
+            self.ticker2,
+            self.spread_to_trigger_trade_entry,
+            self.spread_to_trigger_trade_exit,
+            self.spread_to_abandon_trade,
+            self.kalman_spread,
+            self.trade_history_frame,
+        )
+        trade_history_saver.save_trade_history_df_to_sql()
+        
+        regular_spread_saver = RegularSpreadSaver(
+            self.ticker1,
+            self.ticker2,
+            self.spread_to_trigger_trade_entry,
+            self.spread_to_trigger_trade_exit,
+            self.spread_to_abandon_trade,
+            self.kalman_spread,
+            self.regular_spread,
+        )
+        regular_spread_saver.save_regular_spread_df_to_sql()        
 
-        # results df and sql table creation
-        if test_inputs is None:
-            
-            trade_history_saver = TradeHistorySaver(
-                self.ticker1,
-                self.ticker2,
-                self.spread_to_trigger_trade_entry,
-                self.spread_to_trigger_trade_exit,
-                self.spread_to_abandon_trade,
-                self.kalman_spread,
-                self.trade_history_frame,
-            )
-            trade_history_saver.save_trade_history_df_to_sql()
-            
-            regular_spread_saver = RegularSpreadSaver(
-                self.ticker1,
-                self.ticker2,
-                self.spread_to_trigger_trade_entry,
-                self.spread_to_trigger_trade_exit,
-                self.spread_to_abandon_trade,
-                self.kalman_spread,
-                self.regular_spread,
-            )
-            regular_spread_saver.save_regular_spread_df_to_sql()
-            
-        logging.info(f"Completed backtest for {self.ticker1} & {self.ticker2}")
 
     def _trade_entry_common_logic(
         self,
