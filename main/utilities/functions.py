@@ -61,9 +61,8 @@ def retrieve_backtest_equity_curve_spread_table_from_sql_df(
 def custom_create_db_engine(
     pathway: str,
 ) -> pd.DataFrame:
-    
-    """This function is encapsulated like this so it can be mocked in tests
-    """
+
+    """This function is encapsulated like this so it can be mocked in tests"""
 
     return create_engine(
         pathway,

@@ -11,6 +11,7 @@ from main.utilities.functions import (
     retrieve_backtest_equity_curve_spread_table_from_sql_df,
 )
 
+
 def _equity_table_adder(
     row: pd.Series,
     kalman: bool = False,

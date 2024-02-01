@@ -12,13 +12,13 @@ from main.utilities.paths import (
 
 
 class TradeHistorySaver:
-    
-    
-    """This class is used to save the trade history dataframe to a SQL database.
-    """
-    
-    DATABASE_NAME_BACKTEST_TRADEFRAMES = f"sqlite:///{PATHWAY_TO_SQL_DB_OF_BACKTEST_RESULT_DFS}"
-    
+
+    """This class is used to save the trade history dataframe to a SQL database."""
+
+    DATABASE_NAME_BACKTEST_TRADEFRAMES = (
+        f"sqlite:///{PATHWAY_TO_SQL_DB_OF_BACKTEST_RESULT_DFS}"
+    )
+
     def __init__(
         self,
         ticker1: str,
@@ -29,7 +29,7 @@ class TradeHistorySaver:
         kalman_spread: bool,
         trade_history_frame: pd.DataFrame,
     ) -> None:
-        
+
         self.ticker1 = ticker1
         self.ticker2 = ticker2
         self.spread_to_trigger_trade_entry = spread_to_trigger_trade_entry
@@ -37,7 +37,6 @@ class TradeHistorySaver:
         self.spread_to_abandon_trade = spread_to_abandon_trade
         self.kalman_spread = kalman_spread
         self.trade_history_frame = trade_history_frame
-
 
     def save_trade_history_df_to_sql(
         self,
@@ -51,13 +50,12 @@ class TradeHistorySaver:
             self.trade_history_frame,
             engine,
         )
-       
-       
-class RegularSpreadSaver:      
-    
+
+
+class RegularSpreadSaver:
+
     DATABASE_NAME_SPREAD_BACKTEST = f"sqlite:///{PATHWAY_TO_SQL_DB_SPREADS_BACKTEST}"
-    
-    
+
     def __init__(
         self,
         ticker1: str,
@@ -67,9 +65,8 @@ class RegularSpreadSaver:
         spread_to_abandon_trade: int | float,
         kalman_spread: bool,
         regular_spread: pd.DataFrame,
-        
     ) -> None:
-        
+
         self.ticker1 = ticker1
         self.ticker2 = ticker2
         self.spread_to_trigger_trade_entry = spread_to_trigger_trade_entry
@@ -77,8 +74,7 @@ class RegularSpreadSaver:
         self.spread_to_abandon_trade = spread_to_abandon_trade
         self.kalman_spread = kalman_spread
         self.regular_spread = regular_spread
-    
-     
+
     def save_regular_spread_df_to_sql(
         self,
         kalman_spread: bool,
@@ -92,9 +88,9 @@ class RegularSpreadSaver:
             self.regular_spread,
             engine,
         )
-       
-       
-def save_pandas_object_to_database( #TODO refactor with context manager
+
+
+def save_pandas_object_to_database(  # TODO refactor with context manager
     table_name: str,
     trade_history_df: pd.DataFrame,
     engine: sqlite3.Connection,
