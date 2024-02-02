@@ -90,7 +90,7 @@ class RegularSpreadSaver:
         )
 
 
-def save_pandas_object_to_database(  # TODO refactor with context manager
+def save_pandas_object_to_database(
     table_name: str,
     trade_history_df: pd.DataFrame,
     engine: sqlite3.Connection,

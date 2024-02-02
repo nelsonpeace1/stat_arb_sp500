@@ -107,7 +107,7 @@ def _process_row_both_spread(
     prices_df: pd.DataFrame,
     backtest_spread: bool = False,
     kalman: bool = False,
-) -> None:
+) -> tuple | None:
 
     if backtest_spread:
         engine = custom_create_db_engine(DATABASE_NAME_SPREAD_BACKTEST)

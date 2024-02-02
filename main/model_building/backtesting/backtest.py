@@ -677,7 +677,7 @@ class BackTest:
             + number_assets_of_lower_priced_asset * current_price_of_lower_priced_asset
         ) > self.capital:
             logging.info(
-                f"combined asset position is higher than capital allocated to strategy, allocation optimisation failed"
+                "combined asset position is higher than capital allocated to strategy, allocation optimisation failed"
             )
 
         return number_assets_of_higher_priced_asset, number_assets_of_lower_priced_asset

@@ -109,7 +109,7 @@ def _process_row_rolling_hedge_ratio(
             start_date = end_date - BDay(
                 LENGTH_OF_ROLLING_HEDGE_RATIO + ADDITIONAL_DAYS_TO_MAKE_ROLLING_WINDOW
             )  # This stops look ahead bias, note 1 below.
-        except:
+        except ValueError:
             return None
 
     elif (
