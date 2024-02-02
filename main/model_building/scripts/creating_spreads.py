@@ -1,11 +1,3 @@
-import sys
-from dotenv import load_dotenv
-import os
-
-load_dotenv()
-project_path = os.getenv("PROJECT_PATH")
-sys.path.append(project_path)
-
 import sqlite3
 import pandas as pd
 import logging
@@ -115,7 +107,7 @@ def _process_row_both_spread(
     prices_df: pd.DataFrame,
     backtest_spread: bool = False,
     kalman: bool = False,
-) -> None:
+) -> tuple | None:
 
     if backtest_spread:
         engine = custom_create_db_engine(DATABASE_NAME_SPREAD_BACKTEST)

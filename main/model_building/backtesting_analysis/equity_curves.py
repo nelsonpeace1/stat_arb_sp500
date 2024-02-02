@@ -1,16 +1,7 @@
-import sys
-from dotenv import load_dotenv
-import os
-
-load_dotenv()
-project_path = os.getenv("PROJECT_PATH")
-sys.path.append(project_path)
-
 import pandas as pd
 from joblib import Parallel, delayed
 import numpy as np
 from datetime import datetime
-
 
 from main.utilities.constants import (
     CORES_TO_USE,

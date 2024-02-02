@@ -1,11 +1,3 @@
-import sys
-from dotenv import load_dotenv
-import os
-
-load_dotenv()
-project_path = os.getenv("PROJECT_PATH")
-sys.path.append(project_path)
-
 from main.utilities.paths import (
     PATHWAY_TO_SQL_DB_SPREADS,
     PATHWAY_TO_SQL_DB_SPREADS_BACKTEST,
@@ -69,6 +61,8 @@ def retrieve_backtest_equity_curve_spread_table_from_sql_df(
 def custom_create_db_engine(
     pathway: str,
 ) -> pd.DataFrame:
+
+    """This function is encapsulated like this so it can be mocked in tests"""
 
     return create_engine(
         pathway,

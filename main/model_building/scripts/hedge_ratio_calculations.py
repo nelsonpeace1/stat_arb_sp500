@@ -1,11 +1,3 @@
-import sys
-from dotenv import load_dotenv
-import os
-
-load_dotenv()
-project_path = os.getenv("PROJECT_PATH")
-sys.path.append(project_path)
-
 import pandas as pd
 import numpy as np
 from pandas.tseries.offsets import BDay
@@ -117,7 +109,7 @@ def _process_row_rolling_hedge_ratio(
             start_date = end_date - BDay(
                 LENGTH_OF_ROLLING_HEDGE_RATIO + ADDITIONAL_DAYS_TO_MAKE_ROLLING_WINDOW
             )  # This stops look ahead bias, note 1 below.
-        except:
+        except ValueError:
             return None
 
     elif (

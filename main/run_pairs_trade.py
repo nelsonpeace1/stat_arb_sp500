@@ -1,25 +1,24 @@
 import sys
-from dotenv import load_dotenv
 import os
 import logging
-
-load_dotenv()
-project_path = os.getenv("PROJECT_PATH")
-sys.path.append(project_path)
-logging.basicConfig(level=logging.INFO)
 import subprocess
+
+logging.basicConfig(level=logging.INFO)
+
+from main.utilities.paths import ROOT_DIR
 
 # List of scripts to run with their full paths
 
 scripts = [
-    r"C:\Users\Nelson\Desktop\projects\trader_experimentation\main\model_building\scripts\cointegration_testing"
-    r"C:\Users\Nelson\Desktop\projects\trader_experimentation\main\model_building\scripts\creating_spreads.py",
-    r"C:\Users\Nelson\Desktop\projects\trader_experimentation\main\model_building\scripts\adf_testing.py",
-    r"C:\Users\Nelson\Desktop\projects\trader_experimentation\main\model_building\scripts\hurst_exponent.py",
-    r"C:\Users\Nelson\Desktop\projects\trader_experimentation\main\model_building\scripts\half_life.py",
-    r"C:\Users\Nelson\Desktop\projects\trader_experimentation\main\model_building\scripts\modify_results_df.py",
-    r"C:\Users\Nelson\Desktop\projects\trader_experimentation\main\model_building\backtesting\backtest_execution.py",
-    r"C:\Users\Nelson\Desktop\projects\trader_experimentation\main\model_building\backtesting_analysis\performance_measures.py",
+    f"{ROOT_DIR}main/model_building/scripts/cointegration_testing.py",
+    f"{ROOT_DIR}main/model_building/scripts/hedge_ratio_calculations.py",
+    f"{ROOT_DIR}main/model_building/scripts/creating_spreads.py",
+    f"{ROOT_DIR}main/model_building/scripts/adf_testing.py",
+    f"{ROOT_DIR}main/model_building/scripts/hurst_exponent.py",
+    f"{ROOT_DIR}main/model_building/scripts/half_life.py",
+    f"{ROOT_DIR}main/model_building/scripts/modify_results_df.py",
+    f"{ROOT_DIR}main/model_building/backtesting/backtest_execution.py",
+    f"{ROOT_DIR}main/model_building/backtesting_analysis/performance_measures.py",
 ]
 
 

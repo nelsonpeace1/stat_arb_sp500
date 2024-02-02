@@ -1,11 +1,3 @@
-import sys
-from dotenv import load_dotenv
-import os
-
-load_dotenv()
-project_path = os.getenv("PROJECT_PATH")
-sys.path.append(project_path)
-
 from joblib import Parallel, delayed
 import pandas as pd
 import logging
@@ -44,8 +36,10 @@ def execute_trade(
             kalman_spread=kalman_spread,
         )
         return bt.trade()
-    except:
-        logging.info(f"{row['first_ticker']} and {row['second_ticker']} FAILED SOMEHOW")
+    except ValueError as e:
+        logging.info(
+            f"{row['first_ticker']} and {row['second_ticker']} FAILED SOMEHOW: {e}"
+        )
 
 
 if __name__ == "__main__":
@@ -88,4 +82,4 @@ if __name__ == "__main__":
         for _, row in results_df.iterrows()
     )
 
-    logging.info("Backtest complete")
+    logging.info("Backtest execution complete")

@@ -1,11 +1,3 @@
-import sys
-from dotenv import load_dotenv
-import os
-
-load_dotenv()
-project_path = os.getenv("PROJECT_PATH")
-sys.path.append(project_path)
-
 from joblib import Parallel, delayed
 import pandas as pd
 import logging
@@ -45,7 +37,6 @@ def _calculate_single_rolling_hedge_ratio_kalman(
     prices_df: pd.DataFrame,
     process_noise: float = 0.0001,
     measurement_noise: float = 1.99,
-    hedge_ratio: float = 0.0,
     error_cov: float = 1.0,
 ) -> pd.Series:
 

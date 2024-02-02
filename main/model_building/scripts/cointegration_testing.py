@@ -1,11 +1,3 @@
-import sys
-from dotenv import load_dotenv
-import os
-
-load_dotenv()
-project_path = os.getenv("PROJECT_PATH")
-sys.path.append(project_path)
-
 from itertools import combinations
 import pandas as pd
 from datetime import datetime, timedelta, date
@@ -46,7 +38,7 @@ def _cointegration_tests(
     ticker2: str,
     df_prices: pd.DataFrame,
     trading_period_mid_point_date: date,
-) -> dict:
+) -> dict | None:
 
     """
     Calculates relevant dates, performs cointegration test (engle) and returns test result p value, the pair start date, end date, mid date,
@@ -147,7 +139,6 @@ def _process_pair(
 
 
 def perform_multiple_cointegration_tests(
-    results_df: pd.DataFrame,
     prices_df: pd.DataFrame,
     trading_period_mid_point_date: date = TRADING_DATE_MID_POINT,
 ) -> pd.DataFrame:
@@ -157,7 +148,7 @@ def perform_multiple_cointegration_tests(
             prices_df.columns,
             NUMBER_TICKERS_TO_COMBINE,
         )
-    )
+    )[:50]
 
     list_of_temp_dfs = Parallel(n_jobs=CORES_TO_USE)(
         delayed(_process_pair)(
@@ -188,6 +179,6 @@ if __name__ == "__main__":
         ]
     )
 
-    results = perform_multiple_cointegration_tests(results_df, prices_df)
+    results = perform_multiple_cointegration_tests(prices_df)
     results.to_parquet(PATHWAY_TO_COINTEGRATION_AND_RESULTS_DF)
     logging.info("Finished sp_500 cointegration tests")
