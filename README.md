@@ -3,6 +3,8 @@ This herein project is an experiment in demonstrating several fundamental mechan
 - A basic set of mechanics on pairs trading/stat arb tools. A user can plug in their desired universe of assets, run the strategy, and have pairs trading candidates generated. Similarly, a user can take various moving parts of this overall strategy and implement them in their own.
 - This is a demonstration of moving parts, not an actual tenable strategy. Statistical arbitrage alone will not make you money, a sound underlying economic rationale for why two instruments trade in linearly consistent ratio is necessary for a successful strategy, this is the 'art' of statistical arbitrage.
 
+Readers who want to skip ahead and into the code, can start their exploration at the back-test class: https://github.com/nelsonpeace1/stat_arb_sp500/blob/master/main/model_building/backtesting/backtest.py. 
+
 This is presented as a highly non specific experiment under the (hopefully obvious) assumption that the reader is not expecting me to give away the nuances of the profitable trading strategies I am running.
 
 
