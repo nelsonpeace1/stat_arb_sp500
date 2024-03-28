@@ -30,7 +30,7 @@ ROUNDING_OF_TRANSFORMED_TRAINING_PERIOD = 0
 NUMBER_TICKERS_TO_COMBINE = 2
 FIRST_PRODUCT_ELEMENT = 0
 SECOND_PRODUCT_ELEMENT = 1
-FIRST_VAL_ENGLE_DICT = 0
+FIRST_VALUE_ENGLE_DICT = 0
 
 
 def _cointegration_tests(
@@ -122,7 +122,7 @@ def _process_pair(
         (results_dictionary is None)
         or (results_dictionary["engle_test_training"] is None)
         or (
-            results_dictionary["engle_test_training"][FIRST_VAL_ENGLE_DICT]
+            results_dictionary["engle_test_training"][FIRST_VALUE_ENGLE_DICT]
             > ENGLE_COINT_P_VALUE_THRESHOLD
         )
     ):

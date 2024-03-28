@@ -1,8 +1,6 @@
 from datetime import datetime
 from math import floor
 import logging
-import sqlite3
-from typing import Optional
 
 import pandas as pd
 import numpy as np
@@ -33,11 +31,6 @@ DATABASE_NAME_BACKTEST_TRADEFRAMES = (
     f"sqlite:///{PATHWAY_TO_SQL_DB_OF_BACKTEST_RESULT_DFS}"
 )
 DATABASE_NAME_SPREAD_BACKTEST = f"sqlite:///{PATHWAY_TO_SQL_DB_SPREADS_BACKTEST}"
-
-SPREAD_TO_TRIGGER_TRADE_ENTRY = 2
-SPREAD_TO_TRIGGER_TRADE_EXIT = 0.5
-SPREAD_TO_ABANDON_TRADE = 6
-SPREAD_HOP_TO_ABANDON_TRADE = 4
 
 
 class BackTest:
@@ -90,9 +83,11 @@ class BackTest:
 
     """
 
-    STARTING_TRADE_COUNTER = 0
+    STARTING_TRADE_COUNTER = 0  # TODO caps needed? also what is use of undersetocore here? what about the concept of 'properties' here?
     DAYS_IN_CALENDAR_YEAR = 365
-    DEFAULT_SHORTING_RATE_PER_ANNUM = 0.0025
+    DEFAULT_SHORTING_RATE_PER_ANNUM = (
+        0.0025  # todo reserce these for when i epxect users to NOT/ever change this
+    )
     FIRST_INDEX_TRADE_DF = 0
     IBKR_COMMISSION_RATE = 0.0005
     AVGE_SP500_BID_ASK_SPREAD_PERCENT = 0.03
@@ -117,12 +112,17 @@ class BackTest:
         "trade_abandoned",
     ]
 
+    DEFAULT_SPREAD_TO_TRIGGER_TRADE_ENTRY = 2
+    DEFAULT_SPREAD_TO_TRIGGER_TRADE_EXIT = 0.5
+    DEFAULT_SPREAD_TO_ABANDON_TRADE = 6
+    DEFAULT_SPREAD_HOP_TO_ABANDON_TRADE = 4
+
     def __init__(
         self,
         asset_pair_row: pd.Series,
-        spread_to_trigger_trade_entry: int = SPREAD_TO_TRIGGER_TRADE_ENTRY,
-        spread_to_trigger_trade_exit: int = SPREAD_TO_TRIGGER_TRADE_EXIT,
-        spread_to_abandon_trade: int = SPREAD_TO_ABANDON_TRADE,
+        spread_to_trigger_trade_entry: int = DEFAULT_SPREAD_TO_TRIGGER_TRADE_ENTRY,
+        spread_to_trigger_trade_exit: int = DEFAULT_SPREAD_TO_TRIGGER_TRADE_EXIT,
+        spread_to_abandon_trade: int = DEFAULT_SPREAD_TO_ABANDON_TRADE,
         test_inputs: dict[str, int] | None = None,
         kalman_spread: bool = False,
     ) -> None:
@@ -398,7 +398,7 @@ class BackTest:
             if abs(standardised_spread) > self.spread_to_abandon_trade or (
                 abs(standardised_spread)
                 + abs(self.standardised_spread.shift().loc[date])
-                > SPREAD_HOP_TO_ABANDON_TRADE
+                > self.DEFAULT_SPREAD_HOP_TO_ABANDON_TRADE
             ):
 
                 self.trade_abandoned = True
@@ -419,7 +419,7 @@ class BackTest:
             )
             if abs(standardised_spread) > self.spread_to_abandon_trade or (
                 (standardised_spread - self.standardised_spread.shift().loc[date])
-                > SPREAD_HOP_TO_ABANDON_TRADE
+                > self.DEFAULT_SPREAD_HOP_TO_ABANDON_TRADE
             ):
 
                 self.trade_abandoned = True
