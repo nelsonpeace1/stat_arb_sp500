@@ -172,6 +172,14 @@ def create_rolling_hedge_ratio_scaled_spread_whole_set(
         for _, row in results_df.iterrows()
     )
 
+    for _, row in results_df.iterrows():
+        _process_row_both_spread(
+            row,
+            prices_df,
+            backtest_spread,
+            kalman,
+        )
+
 
 if __name__ == "__main__":
 

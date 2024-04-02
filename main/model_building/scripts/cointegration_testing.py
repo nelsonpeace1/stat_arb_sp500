@@ -30,7 +30,7 @@ ROUNDING_OF_TRANSFORMED_TRAINING_PERIOD = 0
 NUMBER_TICKERS_TO_COMBINE = 2
 FIRST_PRODUCT_ELEMENT = 0
 SECOND_PRODUCT_ELEMENT = 1
-FIRST_VAL_ENGLE_DICT = 0
+FIRST_VALUE_ENGLE_DICT = 0
 
 
 def _cointegration_tests(
@@ -122,7 +122,7 @@ def _process_pair(
         (results_dictionary is None)
         or (results_dictionary["engle_test_training"] is None)
         or (
-            results_dictionary["engle_test_training"][FIRST_VAL_ENGLE_DICT]
+            results_dictionary["engle_test_training"][FIRST_VALUE_ENGLE_DICT]
             > ENGLE_COINT_P_VALUE_THRESHOLD
         )
     ):
@@ -148,7 +148,7 @@ def perform_multiple_cointegration_tests(
             prices_df.columns,
             NUMBER_TICKERS_TO_COMBINE,
         )
-    )[:50]
+    )
 
     list_of_temp_dfs = Parallel(n_jobs=CORES_TO_USE)(
         delayed(_process_pair)(
@@ -162,6 +162,7 @@ def perform_multiple_cointegration_tests(
     list_of_temp_dfs = [df for df in list_of_temp_dfs if df is not None]
 
     results_df = pd.concat(list_of_temp_dfs).reset_index(drop=True)
+
     return results_df.reset_index(drop=True)
 
 

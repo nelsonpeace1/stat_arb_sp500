@@ -14,8 +14,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 from sqlalchemy import create_engine
 
-RANDOM_WALK_STARTING_DATE = ("1678-01-01",)
-RANDOM_WALK_ENDING_DATE = ("2261-12-31",)
+RANDOM_WALK_STARTING_DATE = "1678-01-01"
+RANDOM_WALK_ENDING_DATE = "2261-12-31"
 RANDOM_WALK_STARTING_STOCK_VALUE = 100
 
 

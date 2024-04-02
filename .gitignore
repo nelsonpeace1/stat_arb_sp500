@@ -9,4 +9,4 @@ _stat_arb_venv
 main\data_collection\data\processed\old_dfs
 private_folder
 .vscode
-.metaflow
+.metaflow/
