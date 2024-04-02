@@ -83,11 +83,9 @@ class BackTest:
 
     """
 
-    STARTING_TRADE_COUNTER = 0  # TODO caps needed? also what is use of undersetocore here? what about the concept of 'properties' here?
+    STARTING_TRADE_COUNTER = 0
     DAYS_IN_CALENDAR_YEAR = 365
-    DEFAULT_SHORTING_RATE_PER_ANNUM = (
-        0.0025  # todo reserce these for when i epxect users to NOT/ever change this
-    )
+    DEFAULT_SHORTING_RATE_PER_ANNUM = 0.0025
     FIRST_INDEX_TRADE_DF = 0
     IBKR_COMMISSION_RATE = 0.0005
     AVGE_SP500_BID_ASK_SPREAD_PERCENT = 0.03
