@@ -148,7 +148,7 @@ def perform_multiple_cointegration_tests(
             prices_df.columns,
             NUMBER_TICKERS_TO_COMBINE,
         )
-    )[:50]
+    )
 
     list_of_temp_dfs = Parallel(n_jobs=CORES_TO_USE)(
         delayed(_process_pair)(
@@ -162,6 +162,7 @@ def perform_multiple_cointegration_tests(
     list_of_temp_dfs = [df for df in list_of_temp_dfs if df is not None]
 
     results_df = pd.concat(list_of_temp_dfs).reset_index(drop=True)
+
     return results_df.reset_index(drop=True)
 
 

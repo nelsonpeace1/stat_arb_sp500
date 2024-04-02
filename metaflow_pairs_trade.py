@@ -77,7 +77,7 @@ class StatArbFlow(FlowSpec):
 
     testing_df_length = Parameter(
         name="testing_df_length",
-        default=15,
+        default=30,
         help="Length of the testing dataset",
     )
 
@@ -97,7 +97,7 @@ class StatArbFlow(FlowSpec):
         ).replace(".", "")
 
         if self.testing:
-            self.prices_df = self.prices_df.iloc[: self.testing_df_length, :]
+            self.prices_df = self.prices_df.iloc[:, : self.testing_df_length]
 
         logging.info("Finished defining datasets")
 
@@ -246,12 +246,12 @@ class StatArbFlow(FlowSpec):
 
         logging.info("Finished sector mapping")
 
-        self.next(self.backtest)
+        self.next(self.backtest_ols)
 
     @step
-    def backtest(self):
+    def backtest_ols(self):
 
-        logging.info("Starting backtesting")
+        logging.info("Starting backtesting ols")
 
         # First backtest with Kalman set to false
         Parallel(n_jobs=CORES_TO_USE)(
@@ -265,6 +265,15 @@ class StatArbFlow(FlowSpec):
             for _, row in self.results_df.iterrows()
         )
 
+        logging.info("Backtesting complete ols")
+
+        self.next(self.backtest_kalman)
+
+    @step
+    def backtest_kalman(self):
+
+        logging.info("Starting backtesting kalman")
+
         # Second backtest with Kalman set to True
         Parallel(n_jobs=CORES_TO_USE)(
             delayed(execute_trade)(
@@ -277,7 +286,7 @@ class StatArbFlow(FlowSpec):
             for _, row in self.results_df.iterrows()
         )
 
-        logging.info("Backtesting complete")
+        logging.info("Backtesting complete kalman")
 
         self.next(self.calculate_performance_measures)
 
