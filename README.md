@@ -3,16 +3,13 @@ This herein project is an experiment in demonstrating several fundamental mechan
 - A basic set of mechanics on pairs trading/stat arb tools. A user can plug in their desired universe of assets, run the strategy, and have pairs trading candidates generated. Similarly, a user can take various moving parts of this overall strategy and implement them in their own.
 - This is a demonstration of moving parts, not an actual tenable strategy. Statistical arbitrage alone will not make you money, a sound underlying economic rationale for why two instruments trade in linearly consistent ratio is necessary for a successful strategy, this is the 'art' of statistical arbitrage.
 
-Readers who want to skip ahead and into the code, can start their exploration at the back-test class: https://github.com/nelsonpeace1/stat_arb_sp500/blob/master/main/model_building/backtesting/backtest.py.
-
 This is presented as a highly non specific experiment under the (hopefully obvious) assumption that the reader is not expecting me to give away the nuances of the profitable trading strategies I am running.
 
 For those who would rather just get right to the code, it's best to start at the metaflow pipeline in main/metaflow_pairs_trade.py. Metaflow is a great orchestrator which not only ties all your code together, but gives other devs a linear, sequential tour of your projects functionality. The user can then delve into the code from there.
 
-
 This repo has three phases:
 1. Phase 1a: take a universe of assets, perform cointegration testing, adf testing, hurst exponent calculations, half life calculations, etc.
-2. Phase 1b: back-testing. A back-test of all possible pairs is executed whereby a user can arrive at sensible conclusions about how to run phase 3 below.
+2. Phase 1b: back-testing. A back-test of all possible pairs is executed whereby a user can arrive at sensible conclusions about how to run phase 2 below.
 3. Phase 2: paper trading of candidate pairs. Once candidate pairs are identified, these pairs compete for capital in a fully automated paper trading environment. The building of this third phase is underway at the time of writing.
 
 
@@ -28,9 +25,8 @@ Other considerations/disclaimers:
 
 
 Directions for use:
-1. Modify the paths file with your root path. Then modify the 'main\model_building\backtesting\backtest_execution.py' file with your preferred back-testing hyper parameters (entry threshold, exit threshold, abandon threshold). An example of this is below in appendix 1. Name your own constant in the constants file (mine is called FIRST_BACKTEST_PARAMS), with back-test parameters in this format (underscore/entry threshold/underscore/exit threshold with decimal point removed). The user may also wish to modify their 'CORES_TO_USE' constant in the constants file (if they have a fancier computer than mine, which they almost certainly do). The user should also note that using more than 4 cores can lead to issues in retrieving tables from the Sqlite3 implementations (the accessing of these databases is done in a parallelised fashion, and many more than 4 cores will break it)
-2. You can load a list of tickers in list format into the file 'main/utilities/constants.py', of which price histories will then be retrieved using the functionality in 'main\data_collection\scripts\yfinance_data_pull.py'. Alternatively, if you wish to simply download a list of tickers from the Github listed in the paths file (not my repo), use this script and swap the function in the 'if __name__' block out for 'retrieve_tickers_url' (in the aforementioned script). At present, this function is dormant. After running this script, you will have stored a parquet file with all the prices histories of your asset. Yfinance api support is inconsistent.
-3. The computations are made from within the 'run_pairs_trade.py' file. Run this file in your preferred fashion. At the time of writing, the yfinance api does not support retrieving stock sectors, so this script is removed.
+1. Modify the paths file with your root path. The user may also wish to modify their 'CORES_TO_USE' constant in the constants file (if they have a fancier computer than mine, which they almost certainly do). The user should also note that using more than 4 cores can lead to issues in retrieving tables from the Sqlite3 implementations (the accessing of these databases is done in a parallelised fashion, and many more than 4 cores will break it)
+3. Everything is run from the metaflow file. You can run this file with python3 metaflow_pairs_trade.py run. Set your backtesting parameters as you wish.
 4. Examine the notebook at 'main\model_building\backtesting_analysis\notebooks\backtesting-analysis.ipynb'. This reports on several initial metrics in the back-test, and the user can continue this enquiry in the same fashion for mine, or their own strategy. This notebook compares the equity curves from Phase 2 with different tools and back-test parameters (kalman filter vs ols hedge ratio, etc)
 5. Before deciding on back-test parameters, a user may wish to emulate my approach in 'main\notebooks\eda\backtesting\eda-backtesting-1.0.ipynb' where I consider different thresholds. Note, I do not 'fit' the back-test to these levels, as in my opinion, doing so can (but will not necessarily) lead to back-test over fitting.
 6. The user will need to upload two parquet files, one with the prices and a second with the sectors of those tickers. The ticker names must contain letters and numbers only (no special chars). The prices df should have tickers as columns and a pd.timestamp as index. The sectors parquet should contain a column called 'Instrument', with the instrument names corresponding to the columns in the prices pq file.
